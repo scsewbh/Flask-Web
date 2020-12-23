@@ -33,25 +33,43 @@ def index():
     else:
         return redirect(url_for('login'))
 
-@app.route('/profile', methods=["POST", "GET"])
+@app.route('/profile', methods=["POST", "GET"]) #Load from database
 def profile():
-    username = None
+    email = None
+    first_name = None
+    last_name = None
     if 'email' in session:
-        email = session['email']
+        emailsess = session['email']
 
         if request.method == 'POST':
             email = request.form['email']
             first_name = request.form['first_name']
             last_name = request.form['last_name']
-            session['email'] = email
-            session['first_name'] = first_name
-            session['last_name'] = last_name
-
-            flash('User Settings was Updated!')
+            found_user = users.query.filter_by(email=email).first()
+            if found_user and emailsess != email:
+                flash('Email Already in Use.')
+            else:
+                session['email'] = email
+                session['first_name'] = first_name
+                session['last_name'] = last_name
+                usr = users(first_name, last_name, email)
+                usr.first_name = first_name
+                usr.last_name = last_name
+                usr.email = email
+                db.session.commit()
+                flash('User Settings was Updated!')
         else:
-            if "username" in session:
-                username = session['username']
-        return render_template('profile.html', email=email, username=username) #payload probably better here. To load data when a get is called
+            #Load from database into session. Use session instead of db wherever u can Sanjay.
+            if "email" in session:
+                email = session['email']
+            if session['first_name'] == None:
+                first_name = session['first_name']
+            if "last_name" in session:
+                pass
+            else:
+                last_name = session['last_name']
+
+        return render_template('profile.html', email=email, first_name=first_name, last_name=last_name) #payload probably better here. To load data when a get is called
     else:
         return redirect(url_for('login'))
 
@@ -83,16 +101,16 @@ def register():
         last_name = request.form['last_name']
         found_user = users.query.filter_by(email=email).first()
         if found_user:
-            session[]
+            flash('Email Already in Use. Sign In.')
         else:
             usr = users(first_name, last_name, email)
             db.session.add(usr)
             db.session.commit()
-        flash('Account Created!')
+            flash('Account Created!')
         return redirect(url_for('login'))
     else:
         if 'email' in session:
-            flash('Already Signed In!')
+            flash('Already Signed In.')
             return redirect(url_for('index'))
         return render_template('register.html')
 
