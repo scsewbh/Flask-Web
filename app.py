@@ -52,7 +52,7 @@ class users(UserMixin, db.Model):
 @app.route('/login', methods=["POST", "GET"])
 def login():
     if current_user.is_authenticated:
-        flash('Already Signed In!')
+        flash('Already Signed In!', 'alert alert-warning alert-dismissible fade show')
         return redirect(url_for('index'))
     else:
         if request.method == "POST":
@@ -65,7 +65,7 @@ def login():
             found_user = users.query.filter_by(email=email).first()
 
             if not found_user or not check_password_hash(found_user.password, password):
-                flash('Incorrect Username or Password.')
+                flash('Incorrect Username or Password.', 'alert alert-danger alert-dismissible fade show')
                 return redirect(url_for('login'))  # if the user doesn't exist or password is wrong, reload the page
 
                 # if the above check passes, then we know the user has the right credentials
@@ -79,7 +79,7 @@ def login():
 @app.route('/register', methods=["POST", "GET"])
 def register():
     if current_user.is_authenticated:
-        flash('Already Signed In!')
+        flash('Already Signed In!', 'alert alert-warning alert-dismissible fade show')
         return redirect(url_for('index'))
     else:
         if request.method == "POST":
@@ -90,13 +90,13 @@ def register():
 
             found_user = users.query.filter_by(email=email).first()
             if found_user:
-                flash('Email Already in Use. Sign In.')
+                flash('Email Already in Use. Sign In.', 'alert alert-danger alert-dismissible fade show')
                 return redirect(url_for('login'))
             else:
                 usr = users(first_name, last_name, email, password=generate_password_hash(password, method='sha256'))
                 db.session.add(usr)
                 db.session.commit()
-                flash('Account Created!')
+                flash('Account Created!', 'alert alert-primary alert-dismissible fade show')
             return redirect(url_for('login'))
         else:
             return render_template('register.html')
@@ -107,7 +107,7 @@ def register():
 def logout():
     session.pop('email', None)
     logout_user()
-    flash('Successfully Logged Out!')
+    flash('Successfully Logged Out!', 'alert alert-primary alert-dismissible fade show')
     return redirect(url_for('login'))
 
 @app.route('/')
@@ -128,29 +128,18 @@ def profile():
         first_name = request.form['first_name']
         last_name = request.form['last_name']
         found_user = users.query.filter_by(email=email).first()
-        if found_user and email != email:
-            flash('Email Already in Use.')
+        if found_user.email != current_user.email:
+            flash(u'Email Already in Use.', 'alert alert-danger alert-dismissible fade show')
         else:
-            session['email'] = email
-            session['first_name'] = first_name
-            session['last_name'] = last_name
-            usr = users(first_name, last_name, email)
-            usr.first_name = first_name
-            usr.last_name = last_name
-            usr.email = email
+            found_user.first_name = first_name
+            found_user.last_name = last_name
+            found_user.email = email
             db.session.commit()
-            flash('User Settings was Updated!')
-    else:
-        #Load from database into session. Use session instead of db wherever u can Sanjay.
-        if "email" in session:
-            email = session['email']
-        if session['first_name'] == None:
-            first_name = session['first_name']
-        if "last_name" in session:
-            pass
-        else:
-            last_name = session['last_name']
-        return render_template('profile.html', email=email, first_name=first_name, last_name=last_name) #payload probably better here. To load data when a get is called
+            flash(u'User Settings was Updated!', 'alert alert-primary alert-dismissible fade show')
+
+
+    #Load from database into session. Use session instead of db wherever u can Sanjay.
+    return render_template('profile.html', email=email, first_name=first_name, last_name=last_name) #payload probably better here. To load data when a get is called
 
 @app.route('/table')
 @login_required
@@ -162,7 +151,7 @@ def forgot_password():
     #NEED PASSWORD RESETTER
     if request.method == "POST":
         email = request.form['email']
-        flash('Password Reset Link Sent!')
+        flash('Password Reset Link Sent!', 'alert alert-primary alert-dismissible fade show')
         return redirect(url_for('login'))
     else:
         return render_template('forgot-password.html')
