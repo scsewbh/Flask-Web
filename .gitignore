@@ -3,3 +3,5 @@ venv/
 
 *.sqlite
 users.sqlite3
+
+*.json

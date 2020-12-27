@@ -3,7 +3,6 @@ from werkzeug.security import generate_password_hash, check_password_hash
 from datetime import timedelta
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import UserMixin, LoginManager, login_user, login_required, current_user, logout_user
-from authlib.integrations.flask_client import OAuth
 
 
 app = Flask(__name__)
@@ -16,7 +15,6 @@ login_manager = LoginManager()
 login_manager.init_app(app)
 login_manager.login_view = 'login'
 
-oauth = OAuth(app)
 
 @login_manager.user_loader
 def load_user(user_id):
@@ -131,13 +129,14 @@ def profile():
         email = request.form['email']
         first_name = request.form['first_name']
         last_name = request.form['last_name']
+
         found_user = users.query.filter_by(email=email).first()
-        if found_user.email != current_user.email:
+        if found_user is not None and found_user.email != current_user.email:
             flash(u'Email Already in Use.', 'alert alert-danger alert-dismissible fade show')
         else:
-            found_user.first_name = first_name
-            found_user.last_name = last_name
-            found_user.email = email
+            current_user.first_name = first_name
+            current_user.last_name = last_name
+            current_user.email = email
             db.session.commit()
             flash(u'User Settings was Updated!', 'alert alert-primary alert-dismissible fade show')
 
