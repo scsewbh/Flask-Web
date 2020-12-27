@@ -3,6 +3,8 @@ from werkzeug.security import generate_password_hash, check_password_hash
 from datetime import timedelta
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import UserMixin, LoginManager, login_user, login_required, current_user, logout_user
+from authlib.integrations.flask_client import OAuth
+
 
 app = Flask(__name__)
 app.secret_key = "test" #Change Secret key to something complex maybe look up!
@@ -13,6 +15,8 @@ app.permanent_session_lifetime = timedelta(minutes=10)
 login_manager = LoginManager()
 login_manager.init_app(app)
 login_manager.login_view = 'login'
+
+oauth = OAuth(app)
 
 @login_manager.user_loader
 def load_user(user_id):
